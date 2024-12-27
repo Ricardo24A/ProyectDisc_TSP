@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapa Interactivo</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwQRUekYq6Frb1V4Hjx6Ds_WZojg0Qb0E"></script>
+    <script>
+        let map;
+        let markers = [];
+        let selectedCities = [];
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: -1.831239, lng: -78.183406 }, // Ecuador
+                zoom: 7,
+            });
+
+            // Añadir marcador al hacer clic
+            map.addListener('click', (event) => {
+                addMarker(event.latLng);
+            });
+        }
+
+        function addMarker(location) {
+            const marker = new google.maps.Marker({
+                position: location,
+                map: map,
+            });
+            markers.push(marker);
+            selectedCities.push({ lat: location.lat(), lng: location.lng() });
+            updateSelectedCities();
+        }
+
+        function clearMarkers() {
+            for (let marker of markers) {
+                marker.setMap(null);
+            }
+            markers = [];
+            selectedCities = [];
+            updateSelectedCities();
+        }
+
+        function updateSelectedCities() {
+            const cityList = document.getElementById('selected-cities');
+            cityList.innerHTML = '';
+            selectedCities.forEach((city, index) => {
+                cityList.innerHTML += `<li>Ciudad ${index + 1}: (${city.lat.toFixed(6)}, ${city.lng.toFixed(6)})</li>`;
+            });
+        }
+
+        function getSelectedCities() {
+            return JSON.stringify(selectedCities);
+        }
+
+        function dibujarRuta(rutaJson) {
+            const rutaCoords = JSON.parse(rutaJson);
+            const flightPath = new google.maps.Polyline({
+                path: rutaCoords.map(coord => new google.maps.LatLng(coord.lat, coord.lng)),
+                geodesic: true,
+                strokeColor: "#FF0000",
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+            });
+            flightPath.setMap(map);
+        }
+    </script>
+</head>
+<body onload="initMap()" style="margin:0;">
+    <div id="map" style="width: 100%; height: 80%;"></div>
+    <div style="padding: 10px; background: #f4f4f4;">
+        <h3>Ciudades Seleccionadas:</h3>
+        <ul id="selected-cities"></ul>
+        <button onclick="clearMarkers()">Limpiar Ciudades</button>
+    </div>
+</body>
+</html>

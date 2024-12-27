@@ -5,12 +5,13 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pepep.mavenproject1.PrimaryController">
-   <children>
-      <Label text="Primary View" />
-      <Button fx:id="primaryButton" text="Switch to Secondary View" onAction="#switchToSecondary"/>
-   </children>
-   <padding>
-      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-   </padding>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="pepep.mavenproject1.PrimaryController">
+    <Label text="Mapa Interactivo con Algoritmos" />
+    <WebView fx:id="webView" />
+    <HBox spacing="10" alignment="CENTER">
+        <ComboBox fx:id="algorithmSelector" prefWidth="200" />
+        <Button text="Calcular" onAction="#calcularRuta" />
+    </HBox>
 </VBox>
