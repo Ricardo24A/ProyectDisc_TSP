@@ -28,100 +28,127 @@ public class PrimaryController {
 
     @FXML
     public void initialize() {
-        // Inicializa el WebView cargando el archivo HTML
-        webEngine = webView.getEngine();
-        String path = Paths.get("src/main/resources/map.html").toUri().toString();
-        webEngine.load(path);
+        try {
+            // Inicializa el WebView cargando el archivo HTML
+            webEngine = webView.getEngine();
+            String path = getClass().getResource("/pepep/mavenproject1/map.html").toExternalForm();
+            webEngine.load(path);
+            System.out.println("Cargando mapa desde: " + path);
+            webEngine.load(path);
 
-        // Configura el selector de algoritmos
-        algorithmSelector.getItems().addAll(
-                "Fuerza Bruta",
-                "Búsqueda Local",
-                "Algoritmo Genético",
-                "Simulated Annealing"
-        );
-        algorithmSelector.setValue("Fuerza Bruta"); // Valor por defecto
+            // Captura errores de carga o problemas de JavaScript
+            webEngine.setOnError(event -> System.err.println("Error en WebView: " + event.getMessage()));
+            webEngine.getLoadWorker().exceptionProperty().addListener((obs, oldValue, newValue) -> {
+                if (newValue != null) {
+                    System.err.println("Excepción en WebView: " + newValue.getMessage());
+                }
+            });
+
+            // Configura el selector de algoritmos
+            algorithmSelector.getItems().addAll(
+                    "Fuerza Bruta",
+                    "Búsqueda Local",
+                    "Algoritmo Genético",
+                    "Simulated Annealing"
+            );
+            algorithmSelector.setValue("Fuerza Bruta"); // Valor por defecto
+        } catch (Exception e) {
+            System.err.println("Error al inicializar el controlador: " + e.getMessage());
+        }
     }
 
     @FXML
     public void calcularRuta() {
-        // Obtén las ciudades seleccionadas desde el mapa interactivo
-        JSObject window = (JSObject) webEngine.executeScript("window");
-        String jsonCiudades = (String) webEngine.executeScript("getSelectedCities()");
-        procesarCiudadesSeleccionadas(jsonCiudades);
+        try {
+            // Obtén las ciudades seleccionadas desde el mapa interactivo
+            String jsonCiudades = (String) webEngine.executeScript("getSelectedCities()");
+            procesarCiudadesSeleccionadas(jsonCiudades);
 
-        // Ejecuta el algoritmo seleccionado
-        String algoritmoSeleccionado = algorithmSelector.getValue();
-        ArrayList<Integer> mejorRuta = null;
-        double mejorDistancia = 0;
-        double tiempoEjecucion = 0;
+            // Ejecuta el algoritmo seleccionado
+            String algoritmoSeleccionado = algorithmSelector.getValue();
+            ArrayList<Integer> mejorRuta = null;
+            double mejorDistancia = 0;
+            double tiempoEjecucion = 0;
 
-        switch (algoritmoSeleccionado) {
-            case "Fuerza Bruta":
-                AlgoritmoFuerzaBruta fuerzaBruta = new AlgoritmoFuerzaBruta(grafo);
-                fuerzaBruta.resolver();
-                mejorRuta = fuerzaBruta.getMejorRuta();
-                mejorDistancia = fuerzaBruta.getMenorDistancia();
-                tiempoEjecucion = fuerzaBruta.getTiempoEjecucion();
-                break;
-            case "Búsqueda Local":
-                AlgoritmoBusquedaLocal busquedaLocal = new AlgoritmoBusquedaLocal(grafo);
-                busquedaLocal.resolver();
-                mejorRuta = busquedaLocal.getMejorRuta();
-                mejorDistancia = busquedaLocal.getMejorDistancia();
-                tiempoEjecucion = busquedaLocal.getTiempoEjecucion();
-                break;
-            case "Algoritmo Genético":
-                AlgoritmoGenetico genetico = new AlgoritmoGenetico(grafo, 50, 100, 0.1);
-                genetico.resolver();
-                mejorRuta = genetico.getMejorRuta();
-                mejorDistancia = genetico.getMejorDistancia();
-                tiempoEjecucion = genetico.getTiempoEjecucion();
-                break;
-            case "Simulated Annealing":
-                AlgoritmoSimulatedAnnealing annealing = new AlgoritmoSimulatedAnnealing(grafo);
-                annealing.resolver(10000, 0.99);
-                mejorRuta = annealing.getMejorRuta();
-                mejorDistancia = annealing.getMejorDistancia();
-                tiempoEjecucion = annealing.getTiempoEjecucion();
-                break;
+            switch (algoritmoSeleccionado) {
+                case "Fuerza Bruta":
+                    AlgoritmoFuerzaBruta fuerzaBruta = new AlgoritmoFuerzaBruta(grafo);
+                    fuerzaBruta.resolver();
+                    mejorRuta = fuerzaBruta.getMejorRuta();
+                    mejorDistancia = fuerzaBruta.getMenorDistancia();
+                    tiempoEjecucion = fuerzaBruta.getTiempoEjecucion();
+                    break;
+                case "Búsqueda Local":
+                    AlgoritmoBusquedaLocal busquedaLocal = new AlgoritmoBusquedaLocal(grafo);
+                    busquedaLocal.resolver();
+                    mejorRuta = busquedaLocal.getMejorRuta();
+                    mejorDistancia = busquedaLocal.getMejorDistancia();
+                    tiempoEjecucion = busquedaLocal.getTiempoEjecucion();
+                    break;
+                case "Algoritmo Genético":
+                    AlgoritmoGenetico genetico = new AlgoritmoGenetico(grafo, 50, 100, 0.1);
+                    genetico.resolver();
+                    mejorRuta = genetico.getMejorRuta();
+                    mejorDistancia = genetico.getMejorDistancia();
+                    tiempoEjecucion = genetico.getTiempoEjecucion();
+                    break;
+                case "Simulated Annealing":
+                    AlgoritmoSimulatedAnnealing annealing = new AlgoritmoSimulatedAnnealing(grafo);
+                    annealing.resolver(10000, 0.99);
+                    mejorRuta = annealing.getMejorRuta();
+                    mejorDistancia = annealing.getMejorDistancia();
+                    tiempoEjecucion = annealing.getTiempoEjecucion();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Algoritmo no reconocido: " + algoritmoSeleccionado);
+            }
+
+            // Mostrar los resultados en el mapa y en un cuadro de diálogo
+            mostrarResultadosEnMapa(mejorRuta);
+            mostrarResultadosEnDialogo(mejorRuta, mejorDistancia, tiempoEjecucion);
+        } catch (Exception e) {
+            mostrarError("Error al calcular la ruta: " + e.getMessage());
         }
-
-        // Mostrar los resultados en el mapa y en un cuadro de diálogo
-        mostrarResultadosEnMapa(mejorRuta);
-        mostrarResultadosEnDialogo(mejorRuta, mejorDistancia, tiempoEjecucion);
     }
 
     private void procesarCiudadesSeleccionadas(String jsonCiudades) {
-        // Procesar las ciudades seleccionadas desde el mapa (JSON)
-        Gson gson = new Gson();
-        Type listType = new TypeToken<List<Map<String, Double>>>() {}.getType();
-        List<Map<String, Double>> coords = gson.fromJson(jsonCiudades, listType);
+        try {
+            // Procesar las ciudades seleccionadas desde el mapa (JSON)
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<Map<String, Double>>>() {}.getType();
+            List<Map<String, Double>> coords = gson.fromJson(jsonCiudades, listType);
 
-        ciudadesSeleccionadas.clear();
-        int id = 0;
-        for (Map<String, Double> coord : coords) {
-            double lat = coord.get("lat");
-            double lng = coord.get("lng");
-            ciudadesSeleccionadas.add(new Ciudad(id++, "Ciudad " + id, lat, lng));
+            ciudadesSeleccionadas.clear();
+            int id = 0;
+            for (Map<String, Double> coord : coords) {
+                double lat = coord.get("lat");
+                double lng = coord.get("lng");
+                ciudadesSeleccionadas.add(new Ciudad(id++, "Ciudad " + id, lat, lng));
+            }
+
+            grafo = new Grafo(new ArrayList<>(ciudadesSeleccionadas));
+        } catch (Exception e) {
+            mostrarError("Error al procesar las ciudades seleccionadas: " + e.getMessage());
         }
-
-        grafo = new Grafo(new ArrayList<>(ciudadesSeleccionadas));
     }
 
     private void mostrarResultadosEnMapa(ArrayList<Integer> mejorRuta) {
-        // Convierte la mejor ruta a JSON y llama a la función dibujarRuta en el mapa
-        ArrayList<Map<String, Double>> rutaCoords = new ArrayList<>();
-        for (int index : mejorRuta) {
-            Ciudad ciudad = ciudadesSeleccionadas.get(index);
-            Map<String, Double> coord = new HashMap<>();
-            coord.put("lat", ciudad.getLat());
-            coord.put("lng", ciudad.getLng());
-            rutaCoords.add(coord);
-        }
+        try {
+            // Convierte la mejor ruta a JSON y llama a la función dibujarRuta en el mapa
+            ArrayList<Map<String, Double>> rutaCoords = new ArrayList<>();
+            for (int index : mejorRuta) {
+                Ciudad ciudad = ciudadesSeleccionadas.get(index);
+                Map<String, Double> coord = new HashMap<>();
+                coord.put("lat", ciudad.getLat());
+                coord.put("lng", ciudad.getLng());
+                rutaCoords.add(coord);
+            }
 
-        String rutaJson = new Gson().toJson(rutaCoords);
-        webEngine.executeScript("dibujarRuta(" + rutaJson + ")");
+            String rutaJson = new Gson().toJson(rutaCoords);
+            webEngine.executeScript("dibujarRuta(" + rutaJson + ")");
+        } catch (Exception e) {
+            mostrarError("Error al mostrar la ruta en el mapa: " + e.getMessage());
+        }
     }
 
     private void mostrarResultadosEnDialogo(ArrayList<Integer> mejorRuta, double mejorDistancia, double tiempoEjecucion) {
@@ -132,4 +159,13 @@ public class PrimaryController {
                 mejorRuta, mejorDistancia, tiempoEjecucion));
         alert.showAndWait();
     }
+
+    private void mostrarError(String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
+    }
 }
+

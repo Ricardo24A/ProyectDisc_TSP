@@ -2,34 +2,38 @@
 <html>
 <head>
     <title>Mapa Interactivo</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwQRUekYq6Frb1V4Hjx6Ds_WZojg0Qb0E"></script>
+    <!-- Carga asíncrona de la API de Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAraMD5UVAr__7sCgvJu9wm-3g6_tiqikE&callback=initMap" async defer></script>
     <script>
         let map;
         let markers = [];
         let selectedCities = [];
 
+        // Inicializa el mapa
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: -1.831239, lng: -78.183406 }, // Ecuador
-                zoom: 7,
+                zoom: 7, // Nivel de zoom inicial
             });
 
-            // Añadir marcador al hacer clic
+            // Escucha clics en el mapa para añadir marcadores
             map.addListener('click', (event) => {
                 addMarker(event.latLng);
             });
         }
 
+        // Añade un marcador en la ubicación especificada
         function addMarker(location) {
             const marker = new google.maps.Marker({
                 position: location,
                 map: map,
             });
-            markers.push(marker);
-            selectedCities.push({ lat: location.lat(), lng: location.lng() });
-            updateSelectedCities();
+            markers.push(marker); // Guarda el marcador
+            selectedCities.push({ lat: location.lat(), lng: location.lng() }); // Guarda la ciudad seleccionada
+            updateSelectedCities(); // Actualiza la lista de ciudades seleccionadas
         }
 
+        // Limpia todos los marcadores y las ciudades seleccionadas
         function clearMarkers() {
             for (let marker of markers) {
                 marker.setMap(null);
@@ -39,20 +43,23 @@
             updateSelectedCities();
         }
 
+        // Actualiza la lista de ciudades seleccionadas en la interfaz
         function updateSelectedCities() {
             const cityList = document.getElementById('selected-cities');
-            cityList.innerHTML = '';
+            cityList.innerHTML = ''; // Limpia la lista
             selectedCities.forEach((city, index) => {
                 cityList.innerHTML += `<li>Ciudad ${index + 1}: (${city.lat.toFixed(6)}, ${city.lng.toFixed(6)})</li>`;
             });
         }
 
+        // Devuelve las ciudades seleccionadas como un JSON
         function getSelectedCities() {
             return JSON.stringify(selectedCities);
         }
 
+        // Dibuja una ruta en el mapa usando coordenadas
         function dibujarRuta(rutaJson) {
-            const rutaCoords = JSON.parse(rutaJson);
+            const rutaCoords = JSON.parse(rutaJson); // Convierte el JSON en un array de coordenadas
             const flightPath = new google.maps.Polyline({
                 path: rutaCoords.map(coord => new google.maps.LatLng(coord.lat, coord.lng)),
                 geodesic: true,
@@ -60,11 +67,12 @@
                 strokeOpacity: 1.0,
                 strokeWeight: 2,
             });
-            flightPath.setMap(map);
+            flightPath.setMap(map); // Dibuja la línea en el mapa
         }
     </script>
 </head>
-<body onload="initMap()" style="margin:0;">
+<body style="margin:0;">
+    <!-- Contenedor del mapa -->
     <div id="map" style="width: 100%; height: 80%;"></div>
     <div style="padding: 10px; background: #f4f4f4;">
         <h3>Ciudades Seleccionadas:</h3>
