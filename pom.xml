@@ -33,6 +33,24 @@
             <artifactId>javafx-web</artifactId>
             <version>20</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <version>4.1.1.4</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ollgei</groupId>
+            <artifactId>shaded-gson</artifactId>
+            <version>2.8.6</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
     <build>
